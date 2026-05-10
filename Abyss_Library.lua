@@ -1,21 +1,25 @@
--- Abyss UI Library
--- Inspirada na estética Nebulatech
--- Desenvolvida para Roblox (Luau)
+--[[
+    Abyss UI Library
+    Inspirada na estética Nebulatech
+    Desenvolvida para Roblox (Luau)
+    Repositório: https://github.com/Abyssdev12/Abysslibrary
+]]
 
 local Abyss = {}
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 
 -- Configurações de Tema
 local Theme = {
-    MainBackground = Color3.fromRGB(15, 15, 15),
-    SidebarBackground = Color3.fromRGB(20, 20, 20),
-    SectionBackground = Color3.fromRGB(25, 25, 25),
-    Accent = Color3.fromRGB(140, 120, 255),
-    TextPrimary = Color3.fromRGB(255, 255, 255),
-    TextSecondary = Color3.fromRGB(180, 180, 180),
-    Border = Color3.fromRGB(35, 35, 35),
+    MainBackground = Color3.fromRGB(10, 15, 25), -- Azul Marinho Profundo
+    SidebarBackground = Color3.fromRGB(15, 25, 40), -- Azul Marinho Médio
+    SectionBackground = Color3.fromRGB(20, 35, 55), -- Azul Oceano
+    Accent = Color3.fromRGB(0, 180, 255), -- Azul Ciano/Mar
+    TextPrimary = Color3.fromRGB(240, 250, 255),
+    TextSecondary = Color3.fromRGB(150, 180, 200),
+    Border = Color3.fromRGB(30, 50, 80),
     Font = Enum.Font.GothamMedium
 }
 
@@ -79,6 +83,15 @@ function Abyss:CreateWindow(title, subtitle)
         ClipsDescendants = true
     })
 
+    Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 30, 50)),
+            ColorSequenceKeypoint.new(1, Theme.MainBackground)
+        }),
+        Rotation = 45,
+        Parent = MainFrame
+    })
+
     Create("UICorner", {
         CornerRadius = UDim.new(0, 8),
         Parent = MainFrame
@@ -134,7 +147,7 @@ function Abyss:CreateWindow(title, subtitle)
         Position = UDim2.new(0, 15, 0, 35),
         Size = UDim2.new(1, -30, 0, 15),
         Font = Theme.Font,
-        Text = subtitle or "UI Library",
+        Text = subtitle or "",
         TextColor3 = Theme.TextSecondary,
         TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left
@@ -183,7 +196,7 @@ function Abyss:CreateWindow(title, subtitle)
         CurrentTab = nil
     }
 
-    function Window:CreateTab(name)
+    function Window:CreateTab(name, iconId)
         local TabButton = Create("TextButton", {
             Name = name .. "Tab",
             Parent = TabButtons,
@@ -202,11 +215,21 @@ function Abyss:CreateWindow(title, subtitle)
             Parent = TabButton
         })
 
+        local TabIcon = Create("ImageLabel", {
+            Name = "Icon",
+            Parent = TabButton,
+            BackgroundTransparency = 1,
+            Position = UDim2.new(0, 8, 0.5, -8),
+            Size = UDim2.new(0, 16, 0, 16),
+            Image = iconId or "",
+            ImageColor3 = Theme.TextSecondary
+        })
+
         local TabLabel = Create("TextLabel", {
             Parent = TabButton,
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 10, 0, 0),
-            Size = UDim2.new(1, -10, 1, 0),
+            Position = UDim2.new(0, iconId and 32 or 10, 0, 0),
+            Size = UDim2.new(1, iconId and -32 or -10, 1, 0),
             Font = Theme.Font,
             Text = name,
             TextColor3 = Theme.TextSecondary,
@@ -267,10 +290,16 @@ function Abyss:CreateWindow(title, subtitle)
                 tab.Page.Visible = false
                 TweenService:Create(tab.Button, TweenInfo.new(0.2), {BackgroundColor3 = Theme.SidebarBackground}):Play()
                 TweenService:Create(tab.Label, TweenInfo.new(0.2), {TextColor3 = Theme.TextSecondary}):Play()
+                if tab.Icon then
+                    TweenService:Create(tab.Icon, TweenInfo.new(0.2), {ImageColor3 = Theme.TextSecondary}):Play()
+                end
             end
             TabPage.Visible = true
             TweenService:Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = Theme.SectionBackground}):Play()
             TweenService:Create(TabLabel, TweenInfo.new(0.2), {TextColor3 = Theme.Accent}):Play()
+            if TabIcon then
+                TweenService:Create(TabIcon, TweenInfo.new(0.2), {ImageColor3 = Theme.Accent}):Play()
+            end
         end
 
         TabButton.MouseButton1Click:Connect(SelectTab)
@@ -278,6 +307,7 @@ function Abyss:CreateWindow(title, subtitle)
         local Tab = {
             Button = TabButton,
             Label = TabLabel,
+            Icon = TabIcon,
             Page = TabPage
         }
 
@@ -287,7 +317,7 @@ function Abyss:CreateWindow(title, subtitle)
             SelectTab()
         end
 
-        function Tab:CreateSection(sectionName, side)
+        function Tab:CreateSection(sectionName, side, iconId)
             local ParentColumn = (side == "Right" and RightColumn) or LeftColumn
             
             local SectionFrame = Create("Frame", {
@@ -309,11 +339,22 @@ function Abyss:CreateWindow(title, subtitle)
                 Parent = SectionFrame
             })
 
+            local SectionIcon = Create("ImageLabel", {
+                Name = "Icon",
+                Parent = SectionFrame,
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 10, 0, 12),
+                Size = UDim2.new(0, 14, 0, 14),
+                Image = iconId or "",
+                ImageColor3 = Theme.Accent,
+                Visible = iconId ~= nil
+            })
+
             local SectionTitle = Create("TextLabel", {
                 Parent = SectionFrame,
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, 10, 0, 10),
-                Size = UDim2.new(1, -20, 0, 20),
+                Position = UDim2.new(0, iconId and 30 or 10, 0, 10),
+                Size = UDim2.new(1, iconId and -40 or -20, 0, 20),
                 Font = Theme.Font,
                 Text = sectionName:upper(),
                 TextColor3 = Theme.Accent,
@@ -345,7 +386,7 @@ function Abyss:CreateWindow(title, subtitle)
             SectionList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
                 SectionContent.Size = UDim2.new(1, 0, 0, SectionList.AbsoluteContentSize.Y)
                 SectionFrame.Size = UDim2.new(1, 0, 0, SectionList.AbsoluteContentSize.Y + 45)
-                TabPage.CanvasSize = UDim2.new(0, 0, 0, TabPage.UIListLayout.AbsoluteContentSize.Y)
+                UpdateCanvasSize()
             end)
 
             local Section = {}
@@ -391,7 +432,7 @@ function Abyss:CreateWindow(title, subtitle)
                     Size = UDim2.new(1, -40, 1, 0),
                     Font = Theme.Font,
                     Text = text,
-                    TextColor3 = Theme.TextSecondary,
+                    TextColor3 = Toggled and Theme.TextPrimary or Theme.TextSecondary,
                     TextSize = 14,
                     TextXAlignment = Enum.TextXAlignment.Left
                 })
