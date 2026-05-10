@@ -1,6 +1,6 @@
 --[[
-    Abyss UI Library
-    Inspirada na estética Nebulatech
+    Abyss UI Library - Ultimate Edition (Polished)
+    Inspirada na estética Nebulatech & Deep Sea
     Desenvolvida para Roblox (Luau)
     Repositório: https://github.com/Abyssdev12/Abysslibrary
 ]]
@@ -10,6 +10,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 
 -- Configurações de Tema
 local Theme = {
@@ -21,7 +22,8 @@ local Theme = {
     TextSecondary = Color3.fromRGB(150, 180, 200),
     Border = Color3.fromRGB(30, 50, 80),
     Font = Enum.Font.GothamMedium,
-    Transparency = 0.15 -- Transparência solicitada
+    Transparency = 0.1,
+    GlowColor = Color3.fromRGB(0, 180, 255)
 }
 
 -- Utilitários
@@ -74,18 +76,54 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
         ResetOnSpawn = false
     })
 
+    -- Main Frame (Criado primeiro para evitar erro de nil)
+    local MainFrame = Create("Frame", {
+        Name = "MainFrame",
+        Parent = ScreenGui,
+        BackgroundColor3 = Theme.MainBackground,
+        BackgroundTransparency = Theme.Transparency,
+        BorderSizePixel = 0,
+        Position = UDim2.new(0.5, -300, 0.5, -200),
+        Size = UDim2.new(0, 600, 0, 400),
+        ClipsDescendants = true,
+        Visible = false -- Começa invisível se houver key
+    })
+
+    -- Efeito de Glow
+    Create("UIStroke", {
+        Color = Theme.Accent,
+        Thickness = 1.5,
+        Transparency = 0.5,
+        Parent = MainFrame
+    })
+
+    Create("UICorner", {
+        CornerRadius = UDim.new(0, 10),
+        Parent = MainFrame
+    })
+
+    -- Gradiente de Fundo
+    Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 40, 70)),
+            ColorSequenceKeypoint.new(1, Theme.MainBackground)
+        }),
+        Rotation = 45,
+        Parent = MainFrame
+    })
+
     -- Sistema de Key
     if keySettings and keySettings.Enabled then
         local KeyFrame = Create("Frame", {
             Name = "KeySystem",
             Parent = ScreenGui,
             BackgroundColor3 = Theme.MainBackground,
-            BackgroundTransparency = Theme.Transparency,
+            BackgroundTransparency = 0.05,
             Position = UDim2.new(0.5, -150, 0.5, -100),
             Size = UDim2.new(0, 300, 0, 200)
         })
-        Create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = KeyFrame})
-        Create("UIStroke", {Color = Theme.Border, Thickness = 1, Parent = KeyFrame})
+        Create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = KeyFrame})
+        Create("UIStroke", {Color = Theme.Accent, Thickness = 1, Parent = KeyFrame})
 
         local KeyTitle = Create("TextLabel", {
             Parent = KeyFrame,
@@ -93,7 +131,7 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
             Position = UDim2.new(0, 0, 0, 20),
             Size = UDim2.new(1, 0, 0, 30),
             Font = Theme.Font,
-            Text = "KEY SYSTEM",
+            Text = "ABYSS KEY SYSTEM",
             TextColor3 = Theme.Accent,
             TextSize = 18
         })
@@ -119,66 +157,43 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
             Font = Theme.Font,
             Text = "Verify Key",
             TextColor3 = Theme.TextPrimary,
-            TextSize = 14
+            TextSize = 14,
+            AutoButtonColor = false
         })
         Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = VerifyBtn})
 
-        -- Lógica de Skip/Verificação (Simulada para o exemplo)
         VerifyBtn.MouseButton1Click:Connect(function()
             if KeyInput.Text == keySettings.Key then
+                TweenService:Create(KeyFrame, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+                for _, v in pairs(KeyFrame:GetChildren()) do
+                    if v:IsA("TextLabel") or v:IsA("TextBox") or v:IsA("TextButton") then
+                        TweenService:Create(v, TweenInfo.new(0.3), {TextTransparency = 1, BackgroundTransparency = 1}):Play()
+                    end
+                end
+                task.wait(0.5)
                 KeyFrame:Destroy()
                 MainFrame.Visible = true
+                MainFrame.Size = UDim2.new(0, 0, 0, 0)
+                MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+                TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 600, 0, 400), Position = UDim2.new(0.5, -300, 0.5, -200)}):Play()
             end
         end)
-        
-        -- Se já tiver key ativa (exemplo), pularia aqui
+    else
+        MainFrame.Visible = true
     end
-
-    local MainFrame = Create("Frame", {
-        Name = "MainFrame",
-        Parent = ScreenGui,
-        BackgroundColor3 = Theme.MainBackground,
-        BackgroundTransparency = Theme.Transparency,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0.5, -300, 0.5, -200),
-        Size = UDim2.new(0, 600, 0, 400),
-        ClipsDescendants = true,
-        Visible = not (keySettings and keySettings.Enabled)
-    })
-
-    Create("UIGradient", {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 30, 50)),
-            ColorSequenceKeypoint.new(1, Theme.MainBackground)
-        }),
-        Rotation = 45,
-        Parent = MainFrame
-    })
-
-    Create("UICorner", {
-        CornerRadius = UDim.new(0, 8),
-        Parent = MainFrame
-    })
-
-    Create("UIStroke", {
-        Color = Theme.Border,
-        Thickness = 1,
-        Parent = MainFrame
-    })
 
     -- Sidebar
     local Sidebar = Create("Frame", {
         Name = "Sidebar",
         Parent = MainFrame,
         BackgroundColor3 = Theme.SidebarBackground,
+        BackgroundTransparency = 0.2,
         BorderSizePixel = 0,
-        Size = UDim2.new(0, 160, 1, 0)
+        Size = UDim2.new(0, 170, 1, 0)
     })
 
-    Create("UIStroke", {
-        Color = Theme.Border,
-        Thickness = 1,
-        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+    Create("UICorner", {
+        CornerRadius = UDim.new(0, 10),
         Parent = Sidebar
     })
 
@@ -187,60 +202,8 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
         Name = "TitleArea",
         Parent = Sidebar,
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 0, 120) -- Aumentado para caber o perfil
+        Size = UDim2.new(1, 0, 0, 130)
     })
-
-    -- Perfil do Usuário
-    local Player = game.Players.LocalPlayer
-    local ProfileFrame = Create("Frame", {
-        Name = "Profile",
-        Parent = TitleArea,
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 15, 0, 60),
-        Size = UDim2.new(1, -30, 0, 40)
-    })
-
-    local AvatarCircle = Create("ImageLabel", {
-        Name = "Avatar",
-        Parent = ProfileFrame,
-        BackgroundColor3 = Color3.fromRGB(255, 0, 0), -- Círculo Vermelho solicitado
-        Size = UDim2.new(0, 35, 0, 35),
-        Image = game.Players:GetUserIdFromNameAsync(Player.Name) and "rbxthumb://type=AvatarHeadShot&id=" .. Player.UserId .. "&w=150&h=150" or "",
-    })
-    Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = AvatarCircle})
-
-    local StatusBox = Create("Frame", {
-        Name = "StatusBox",
-        Parent = ProfileFrame,
-        BackgroundColor3 = Theme.SectionBackground,
-        Position = UDim2.new(0, 45, 0, 5),
-        Size = UDim2.new(0, 80, 0, 25)
-    })
-    Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = StatusBox})
-
-    local StatusLabel = Create("TextLabel", {
-        Parent = StatusBox,
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 1, 0),
-        Font = Theme.Font,
-        Text = Player.MembershipType == Enum.MembershipType.Premium and "PREMIUM" or "FREE",
-        TextColor3 = Player.MembershipType == Enum.MembershipType.Premium and Color3.fromRGB(255, 215, 0) or Theme.TextSecondary,
-        TextSize = 10
-    })
-
-    if Player.MembershipType ~= Enum.MembershipType.Premium then
-        local TimeLabel = Create("TextLabel", {
-            Parent = ProfileFrame,
-            BackgroundTransparency = 1,
-            Position = UDim2.new(0, 45, 0, 30),
-            Size = UDim2.new(0, 80, 0, 10),
-            Font = Theme.Font,
-            Text = "Key: 23h 59m",
-            TextColor3 = Theme.TextSecondary,
-            TextSize = 8,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-    end
 
     local TitleLabel = Create("TextLabel", {
         Name = "Title",
@@ -249,42 +212,84 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
         Position = UDim2.new(0, 15, 0, 15),
         Size = UDim2.new(1, -30, 0, 20),
         Font = Theme.Font,
-        Text = title or "Abyss",
+        Text = title or "ABYSS",
         TextColor3 = Theme.Accent,
-        TextSize = 18,
+        TextSize = 20,
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    local SubtitleLabel = Create("TextLabel", {
-        Name = "Subtitle",
+    -- Perfil do Usuário (Melhorado)
+    local Player = Players.LocalPlayer
+    local ProfileFrame = Create("Frame", {
+        Name = "Profile",
         Parent = TitleArea,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 15, 0, 35),
-        Size = UDim2.new(1, -30, 0, 15),
+        Position = UDim2.new(0, 15, 0, 50),
+        Size = UDim2.new(1, -30, 0, 60)
+    })
+
+    local AvatarCircle = Create("ImageLabel", {
+        Name = "Avatar",
+        Parent = ProfileFrame,
+        BackgroundColor3 = Color3.fromRGB(255, 50, 50), -- Círculo Vermelho
+        Size = UDim2.new(0, 45, 0, 45),
+        Image = "rbxthumb://type=AvatarHeadShot&id=" .. Player.UserId .. "&w=150&h=150",
+    })
+    Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = AvatarCircle})
+    Create("UIStroke", {Color = Theme.Accent, Thickness = 2, Parent = AvatarCircle})
+
+    local InfoContainer = Create("Frame", {
+        Parent = ProfileFrame,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 55, 0, 0),
+        Size = UDim2.new(1, -55, 1, 0)
+    })
+
+    local StatusLabel = Create("TextLabel", {
+        Parent = InfoContainer,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 0, 20),
         Font = Theme.Font,
-        Text = subtitle or "",
-        TextColor3 = Theme.TextSecondary,
-        TextSize = 12,
+        Text = Player.MembershipType == Enum.MembershipType.Premium and "PREMIUM" or "FREE USER",
+        TextColor3 = Player.MembershipType == Enum.MembershipType.Premium and Color3.fromRGB(255, 215, 0) or Theme.TextSecondary,
+        TextSize = 11,
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    -- Tab Container
+    local KeyTimeLabel = Create("TextLabel", {
+        Parent = InfoContainer,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 0, 0, 20),
+        Size = UDim2.new(1, 0, 0, 15),
+        Font = Theme.Font,
+        Text = "Key: 24h Left",
+        TextColor3 = Theme.Accent,
+        TextSize = 10,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    -- Tab Buttons Container
     local TabButtons = Create("ScrollingFrame", {
         Name = "TabButtons",
         Parent = Sidebar,
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
-        Position = UDim2.new(0, 0, 0, 70),
-        Size = UDim2.new(1, 0, 1, -70),
+        Position = UDim2.new(0, 0, 0, 130),
+        Size = UDim2.new(1, 0, 1, -130),
         ScrollBarThickness = 0,
         CanvasSize = UDim2.new(0, 0, 0, 0)
     })
 
     Create("UIListLayout", {
         Parent = TabButtons,
-        Padding = UDim.new(0, 5),
+        Padding = UDim.new(0, 8),
         HorizontalAlignment = Enum.HorizontalAlignment.Center,
         SortOrder = Enum.SortOrder.LayoutOrder
+    })
+
+    Create("UIPadding", {
+        Parent = TabButtons,
+        PaddingTop = UDim.new(0, 10)
     })
 
     -- Content Area
@@ -292,8 +297,8 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
         Name = "ContentArea",
         Parent = MainFrame,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 160, 0, 0),
-        Size = UDim2.new(1, -160, 1, 0)
+        Position = UDim2.new(0, 170, 0, 0),
+        Size = UDim2.new(1, -170, 1, 0)
     })
 
     local TabContainer = Create("Frame", {
@@ -316,8 +321,9 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
             Name = name .. "Tab",
             Parent = TabButtons,
             BackgroundColor3 = Theme.SidebarBackground,
+            BackgroundTransparency = 1,
             BorderSizePixel = 0,
-            Size = UDim2.new(0, 140, 0, 32),
+            Size = UDim2.new(0, 150, 0, 35),
             AutoButtonColor = false,
             Font = Theme.Font,
             Text = "",
@@ -334,8 +340,8 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
             Name = "Icon",
             Parent = TabButton,
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 8, 0.5, -8),
-            Size = UDim2.new(0, 16, 0, 16),
+            Position = UDim2.new(0, 10, 0.5, -9),
+            Size = UDim2.new(0, 18, 0, 18),
             Image = iconId or "",
             ImageColor3 = Theme.TextSecondary
         })
@@ -343,8 +349,8 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
         local TabLabel = Create("TextLabel", {
             Parent = TabButton,
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, iconId and 32 or 10, 0, 0),
-            Size = UDim2.new(1, iconId and -32 or -10, 1, 0),
+            Position = UDim2.new(0, iconId and 35 or 12, 0, 0),
+            Size = UDim2.new(1, iconId and -35 or -12, 1, 0),
             Font = Theme.Font,
             Text = name,
             TextColor3 = Theme.TextSecondary,
@@ -372,7 +378,7 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
 
         Create("UIListLayout", {
             Parent = LeftColumn,
-            Padding = UDim.new(0, 10),
+            Padding = UDim.new(0, 12),
             SortOrder = Enum.SortOrder.LayoutOrder
         })
 
@@ -386,7 +392,7 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
 
         Create("UIListLayout", {
             Parent = RightColumn,
-            Padding = UDim.new(0, 10),
+            Padding = UDim.new(0, 12),
             SortOrder = Enum.SortOrder.LayoutOrder
         })
 
@@ -403,17 +409,17 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
         local function SelectTab()
             for _, tab in pairs(Window.Tabs) do
                 tab.Page.Visible = false
-                TweenService:Create(tab.Button, TweenInfo.new(0.2), {BackgroundColor3 = Theme.SidebarBackground}):Play()
-                TweenService:Create(tab.Label, TweenInfo.new(0.2), {TextColor3 = Theme.TextSecondary}):Play()
+                TweenService:Create(tab.Button, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+                TweenService:Create(tab.Label, TweenInfo.new(0.3), {TextColor3 = Theme.TextSecondary}):Play()
                 if tab.Icon then
-                    TweenService:Create(tab.Icon, TweenInfo.new(0.2), {ImageColor3 = Theme.TextSecondary}):Play()
+                    TweenService:Create(tab.Icon, TweenInfo.new(0.3), {ImageColor3 = Theme.TextSecondary}):Play()
                 end
             end
             TabPage.Visible = true
-            TweenService:Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = Theme.SectionBackground}):Play()
-            TweenService:Create(TabLabel, TweenInfo.new(0.2), {TextColor3 = Theme.Accent}):Play()
+            TweenService:Create(TabButton, TweenInfo.new(0.3), {BackgroundTransparency = 0.5, BackgroundColor3 = Theme.SectionBackground}):Play()
+            TweenService:Create(TabLabel, TweenInfo.new(0.3), {TextColor3 = Theme.Accent}):Play()
             if TabIcon then
-                TweenService:Create(TabIcon, TweenInfo.new(0.2), {ImageColor3 = Theme.Accent}):Play()
+                TweenService:Create(TabIcon, TweenInfo.new(0.3), {ImageColor3 = Theme.Accent}):Play()
             end
         end
 
@@ -439,18 +445,20 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                 Name = sectionName .. "Section",
                 Parent = ParentColumn,
                 BackgroundColor3 = Theme.SectionBackground,
+                BackgroundTransparency = 0.3,
                 BorderSizePixel = 0,
-                Size = UDim2.new(1, 0, 0, 30)
+                Size = UDim2.new(1, 0, 0, 35)
             })
 
             Create("UICorner", {
-                CornerRadius = UDim.new(0, 6),
+                CornerRadius = UDim.new(0, 8),
                 Parent = SectionFrame
             })
 
             Create("UIStroke", {
                 Color = Theme.Border,
                 Thickness = 1,
+                Transparency = 0.5,
                 Parent = SectionFrame
             })
 
@@ -458,8 +466,8 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                 Name = "Icon",
                 Parent = SectionFrame,
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, 10, 0, 12),
-                Size = UDim2.new(0, 14, 0, 14),
+                Position = UDim2.new(0, 12, 0, 12),
+                Size = UDim2.new(0, 16, 0, 16),
                 Image = iconId or "",
                 ImageColor3 = Theme.Accent,
                 Visible = iconId ~= nil
@@ -468,12 +476,12 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
             local SectionTitle = Create("TextLabel", {
                 Parent = SectionFrame,
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, iconId and 30 or 10, 0, 10),
-                Size = UDim2.new(1, iconId and -40 or -20, 0, 20),
+                Position = UDim2.new(0, iconId and 35 or 12, 0, 10),
+                Size = UDim2.new(1, iconId and -45 or -24, 0, 20),
                 Font = Theme.Font,
                 Text = sectionName:upper(),
                 TextColor3 = Theme.Accent,
-                TextSize = 12,
+                TextSize = 13,
                 TextXAlignment = Enum.TextXAlignment.Left
             })
 
@@ -481,26 +489,26 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                 Name = "Content",
                 Parent = SectionFrame,
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, 0, 0, 35),
+                Position = UDim2.new(0, 0, 0, 40),
                 Size = UDim2.new(1, 0, 0, 0)
             })
 
             local SectionList = Create("UIListLayout", {
                 Parent = SectionContent,
-                Padding = UDim.new(0, 5),
+                Padding = UDim.new(0, 8),
                 SortOrder = Enum.SortOrder.LayoutOrder
             })
 
             Create("UIPadding", {
                 Parent = SectionContent,
-                PaddingLeft = UDim.new(0, 10),
-                PaddingRight = UDim.new(0, 10),
-                PaddingBottom = UDim.new(0, 10)
+                PaddingLeft = UDim.new(0, 12),
+                PaddingRight = UDim.new(0, 12),
+                PaddingBottom = UDim.new(0, 12)
             })
 
             SectionList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
                 SectionContent.Size = UDim2.new(1, 0, 0, SectionList.AbsoluteContentSize.Y)
-                SectionFrame.Size = UDim2.new(1, 0, 0, SectionList.AbsoluteContentSize.Y + 45)
+                SectionFrame.Size = UDim2.new(1, 0, 0, SectionList.AbsoluteContentSize.Y + 50)
                 UpdateCanvasSize()
             end)
 
@@ -510,7 +518,7 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                 local Button = Create("TextButton", {
                     Parent = SectionContent,
                     BackgroundColor3 = Theme.MainBackground,
-                    BackgroundTransparency = Theme.Transparency,
+                    BackgroundTransparency = 0.4,
                     BorderSizePixel = 0,
                     Size = UDim2.new(1, 0, 0, 32),
                     AutoButtonColor = false,
@@ -520,10 +528,8 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                     TextSize = 14
                 })
 
-                Create("UICorner", {
-                    CornerRadius = UDim.new(0, 4),
-                    Parent = Button
-                })
+                Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Button})
+                Create("UIStroke", {Color = Theme.Border, Thickness = 1, Parent = Button})
 
                 Button.MouseButton1Click:Connect(function()
                     callback()
@@ -545,7 +551,7 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                 local Label = Create("TextLabel", {
                     Parent = ToggleFrame,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(1, -40, 1, 0),
+                    Size = UDim2.new(1, -45, 1, 0),
                     Font = Theme.Font,
                     Text = text,
                     TextColor3 = Toggled and Theme.TextPrimary or Theme.TextSecondary,
@@ -556,35 +562,28 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                 local Outer = Create("Frame", {
                     Parent = ToggleFrame,
                     BackgroundColor3 = Theme.MainBackground,
-                    BackgroundTransparency = Theme.Transparency,
-                    Position = UDim2.new(1, -35, 0.5, -10),
-                    Size = UDim2.new(0, 35, 0, 20)
+                    BackgroundTransparency = 0.4,
+                    Position = UDim2.new(1, -40, 0.5, -11),
+                    Size = UDim2.new(0, 40, 0, 22)
                 })
-
-                Create("UICorner", {
-                    CornerRadius = UDim.new(1, 0),
-                    Parent = Outer
-                })
+                Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Outer})
+                Create("UIStroke", {Color = Theme.Border, Thickness = 1, Parent = Outer})
 
                 local Inner = Create("Frame", {
                     Parent = Outer,
                     BackgroundColor3 = Toggled and Theme.Accent or Theme.TextSecondary,
-                    Position = Toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
-                    Size = UDim2.new(0, 16, 0, 16)
+                    Position = Toggled and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9),
+                    Size = UDim2.new(0, 18, 0, 18)
                 })
-
-                Create("UICorner", {
-                    CornerRadius = UDim.new(1, 0),
-                    Parent = Inner
-                })
+                Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Inner})
 
                 ToggleFrame.MouseButton1Click:Connect(function()
                     Toggled = not Toggled
-                    local targetPos = Toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                    local targetPos = Toggled and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
                     local targetColor = Toggled and Theme.Accent or Theme.TextSecondary
                     
-                    TweenService:Create(Inner, TweenInfo.new(0.2), {Position = targetPos, BackgroundColor3 = targetColor}):Play()
-                    TweenService:Create(Label, TweenInfo.new(0.2), {TextColor3 = Toggled and Theme.TextPrimary or Theme.TextSecondary}):Play()
+                    TweenService:Create(Inner, TweenInfo.new(0.25, Enum.EasingStyle.Quart), {Position = targetPos, BackgroundColor3 = targetColor}):Play()
+                    TweenService:Create(Label, TweenInfo.new(0.25), {TextColor3 = Toggled and Theme.TextPrimary or Theme.TextSecondary}):Play()
                     
                     callback(Toggled)
                 end)
@@ -624,26 +623,19 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                 local SliderBar = Create("Frame", {
                     Parent = SliderFrame,
                     BackgroundColor3 = Theme.MainBackground,
-                    BackgroundTransparency = Theme.Transparency,
-                    Position = UDim2.new(0, 0, 0, 25),
-                    Size = UDim2.new(1, 0, 0, 6)
+                    BackgroundTransparency = 0.4,
+                    Position = UDim2.new(0, 0, 0, 28),
+                    Size = UDim2.new(1, 0, 0, 8)
                 })
-
-                Create("UICorner", {
-                    CornerRadius = UDim.new(1, 0),
-                    Parent = SliderBar
-                })
+                Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = SliderBar})
+                Create("UIStroke", {Color = Theme.Border, Thickness = 1, Parent = SliderBar})
 
                 local Fill = Create("Frame", {
                     Parent = SliderBar,
                     BackgroundColor3 = Theme.Accent,
                     Size = UDim2.new((Value - min) / (max - min), 0, 1, 0)
                 })
-
-                Create("UICorner", {
-                    CornerRadius = UDim.new(1, 0),
-                    Parent = Fill
-                })
+                Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Fill})
 
                 local function UpdateSlider(input)
                     local pos = math.clamp((input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
@@ -688,20 +680,18 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                 local Main = Create("TextButton", {
                     Parent = DropdownFrame,
                     BackgroundColor3 = Theme.MainBackground,
+                    BackgroundTransparency = 0.4,
                     Size = UDim2.new(1, 0, 0, 32),
                     AutoButtonColor = false,
                     Text = ""
                 })
-
-                Create("UICorner", {
-                    CornerRadius = UDim.new(0, 4),
-                    Parent = Main
-                })
+                Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Main})
+                Create("UIStroke", {Color = Theme.Border, Thickness = 1, Parent = Main})
 
                 local Label = Create("TextLabel", {
                     Parent = Main,
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 10, 0, 0),
+                    Position = UDim2.new(0, 12, 0, 0),
                     Size = UDim2.new(1, -40, 1, 0),
                     Font = Theme.Font,
                     Text = text .. ": " .. Selected,
@@ -724,19 +714,20 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                 local OptionContainer = Create("Frame", {
                     Parent = DropdownFrame,
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 0, 0, 35),
+                    Position = UDim2.new(0, 0, 0, 38),
                     Size = UDim2.new(1, 0, 0, 0)
                 })
 
                 local OptionList = Create("UIListLayout", {
                     Parent = OptionContainer,
-                    Padding = UDim.new(0, 2)
+                    Padding = UDim.new(0, 4)
                 })
 
                 for _, option in pairs(options) do
                     local OptionBtn = Create("TextButton", {
                         Parent = OptionContainer,
-                        BackgroundColor3 = Theme.MainBackground,
+                        BackgroundColor3 = Theme.SidebarBackground,
+                        BackgroundTransparency = 0.3,
                         Size = UDim2.new(1, 0, 0, 28),
                         Font = Theme.Font,
                         Text = option,
@@ -744,17 +735,13 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                         TextSize = 13,
                         AutoButtonColor = false
                     })
-
-                    Create("UICorner", {
-                        CornerRadius = UDim.new(0, 4),
-                        Parent = OptionBtn
-                    })
+                    Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = OptionBtn})
 
                     OptionBtn.MouseButton1Click:Connect(function()
                         Selected = option
                         Label.Text = text .. ": " .. Selected
                         Expanded = false
-                        TweenService:Create(DropdownFrame, TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 0, 32)}):Play()
+                        TweenService:Create(DropdownFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = UDim2.new(1, 0, 0, 32)}):Play()
                         Icon.Text = "▼"
                         callback(Selected)
                     end)
@@ -762,8 +749,8 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
 
                 Main.MouseButton1Click:Connect(function()
                     Expanded = not Expanded
-                    local targetSize = Expanded and UDim2.new(1, 0, 0, 35 + OptionList.AbsoluteContentSize.Y) or UDim2.new(1, 0, 0, 32)
-                    TweenService:Create(DropdownFrame, TweenInfo.new(0.2), {Size = targetSize}):Play()
+                    local targetSize = Expanded and UDim2.new(1, 0, 0, 40 + OptionList.AbsoluteContentSize.Y) or UDim2.new(1, 0, 0, 32)
+                    TweenService:Create(DropdownFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = targetSize}):Play()
                     Icon.Text = Expanded and "▲" or "▼"
                 end)
             end
@@ -772,19 +759,17 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                 local TextBoxFrame = Create("Frame", {
                     Parent = SectionContent,
                     BackgroundColor3 = Theme.MainBackground,
+                    BackgroundTransparency = 0.4,
                     Size = UDim2.new(1, 0, 0, 32)
                 })
-
-                Create("UICorner", {
-                    CornerRadius = UDim.new(0, 4),
-                    Parent = TextBoxFrame
-                })
+                Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = TextBoxFrame})
+                Create("UIStroke", {Color = Theme.Border, Thickness = 1, Parent = TextBoxFrame})
 
                 local Label = Create("TextLabel", {
                     Parent = TextBoxFrame,
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 10, 0, 0),
-                    Size = UDim2.new(0.4, -10, 1, 0),
+                    Position = UDim2.new(0, 12, 0, 0),
+                    Size = UDim2.new(0.4, -12, 1, 0),
                     Font = Theme.Font,
                     Text = text,
                     TextColor3 = Theme.TextSecondary,
@@ -796,7 +781,7 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                     Parent = TextBoxFrame,
                     BackgroundTransparency = 1,
                     Position = UDim2.new(0.4, 0, 0, 0),
-                    Size = UDim2.new(0.6, -10, 1, 0),
+                    Size = UDim2.new(0.6, -12, 1, 0),
                     Font = Theme.Font,
                     PlaceholderText = placeholder or "Type here...",
                     Text = "",
@@ -806,7 +791,7 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                     TextXAlignment = Enum.TextXAlignment.Right
                 })
 
-                Input.FocusLost:Connect(function(enterPressed)
+                Input.FocusLost:Connect(function()
                     callback(Input.Text)
                 end)
             end
@@ -818,20 +803,18 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                 local KeybindFrame = Create("TextButton", {
                     Parent = SectionContent,
                     BackgroundColor3 = Theme.MainBackground,
+                    BackgroundTransparency = 0.4,
                     Size = UDim2.new(1, 0, 0, 32),
                     AutoButtonColor = false,
                     Text = ""
                 })
-
-                Create("UICorner", {
-                    CornerRadius = UDim.new(0, 4),
-                    Parent = KeybindFrame
-                })
+                Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = KeybindFrame})
+                Create("UIStroke", {Color = Theme.Border, Thickness = 1, Parent = KeybindFrame})
 
                 local Label = Create("TextLabel", {
                     Parent = KeybindFrame,
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 10, 0, 0),
+                    Position = UDim2.new(0, 12, 0, 0),
                     Size = UDim2.new(1, -60, 1, 0),
                     Font = Theme.Font,
                     Text = text,
@@ -879,106 +862,6 @@ function Abyss:CreateWindow(title, subtitle, keySettings)
                     TextXAlignment = Enum.TextXAlignment.Left
                 })
                 return Label
-            end
-
-            function Section:CreateColorPicker(text, defaultColor, callback)
-                local CurrentColor = defaultColor or Color3.fromRGB(255, 255, 255)
-                local Expanded = false
-
-                local ColorPickerFrame = Create("Frame", {
-                    Parent = SectionContent,
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(1, 0, 0, 32),
-                    ClipsDescendants = true
-                })
-
-                local Main = Create("TextButton", {
-                    Parent = ColorPickerFrame,
-                    BackgroundColor3 = Theme.MainBackground,
-                    BackgroundTransparency = Theme.Transparency,
-                    Size = UDim2.new(1, 0, 0, 32),
-                    AutoButtonColor = false,
-                    Text = ""
-                })
-
-                Create("UICorner", {
-                    CornerRadius = UDim.new(0, 4),
-                    Parent = Main
-                })
-
-                local Label = Create("TextLabel", {
-                    Parent = Main,
-                    BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 10, 0, 0),
-                    Size = UDim2.new(1, -40, 1, 0),
-                    Font = Theme.Font,
-                    Text = text,
-                    TextColor3 = Theme.TextSecondary,
-                    TextSize = 14,
-                    TextXAlignment = Enum.TextXAlignment.Left
-                })
-
-                local ColorPreview = Create("Frame", {
-                    Parent = Main,
-                    BackgroundColor3 = CurrentColor,
-                    Position = UDim2.new(1, -30, 0.5, -8),
-                    Size = UDim2.new(0, 16, 0, 16)
-                })
-                Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = ColorPreview})
-
-                local PickerContainer = Create("Frame", {
-                    Parent = ColorPickerFrame,
-                    BackgroundColor3 = Theme.SectionBackground,
-                    BackgroundTransparency = Theme.Transparency,
-                    Position = UDim2.new(0, 0, 0, 35),
-                    Size = UDim2.new(1, 0, 0, 100),
-                    Visible = false
-                })
-                Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = PickerContainer})
-
-                local ColorWheel = Create("ImageLabel", {
-                    Parent = PickerContainer,
-                    BackgroundTransparency = 1,
-                    Image = "rbxassetid://1042142839", -- Exemplo de Color Wheel ID
-                    Size = UDim2.new(1, 0, 1, 0)
-                })
-
-                local function UpdateColor(input)
-                    local x = math.clamp(input.Position.X - ColorWheel.AbsolutePosition.X, 0, ColorWheel.AbsoluteSize.X)
-                    local y = math.clamp(input.Position.Y - ColorWheel.AbsolutePosition.Y, 0, ColorWheel.AbsoluteSize.Y)
-
-                    local pixel = ColorWheel:GetPixel(x, y)
-                    CurrentColor = pixel
-                    ColorPreview.BackgroundColor3 = CurrentColor
-                    callback(CurrentColor)
-                end
-
-                local picking = false
-                ColorWheel.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        picking = true
-                        UpdateColor(input)
-                    end
-                end)
-
-                UserInputService.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        picking = false
-                    end
-                end)
-
-                UserInputService.InputChanged:Connect(function(input)
-                    if picking and input.UserInputType == Enum.UserInputType.MouseMovement then
-                        UpdateColor(input)
-                    end
-                end)
-
-                Main.MouseButton1Click:Connect(function()
-                    Expanded = not Expanded
-                    PickerContainer.Visible = Expanded
-                    local targetSize = Expanded and UDim2.new(1, 0, 0, 35 + PickerContainer.Size.Y.Offset) or UDim2.new(1, 0, 0, 32)
-                    TweenService:Create(ColorPickerFrame, TweenInfo.new(0.2), {Size = targetSize}):Play()
-                end)
             end
 
             return Section
