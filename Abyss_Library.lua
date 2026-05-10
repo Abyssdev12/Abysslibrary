@@ -13,14 +13,15 @@ local RunService = game:GetService("RunService")
 
 -- Configurações de Tema
 local Theme = {
-    MainBackground = Color3.fromRGB(10, 15, 25), -- Azul Marinho Profundo
-    SidebarBackground = Color3.fromRGB(15, 25, 40), -- Azul Marinho Médio
-    SectionBackground = Color3.fromRGB(20, 35, 55), -- Azul Oceano
-    Accent = Color3.fromRGB(0, 180, 255), -- Azul Ciano/Mar
+    MainBackground = Color3.fromRGB(10, 15, 25),
+    SidebarBackground = Color3.fromRGB(15, 25, 40),
+    SectionBackground = Color3.fromRGB(20, 35, 55),
+    Accent = Color3.fromRGB(0, 180, 255),
     TextPrimary = Color3.fromRGB(240, 250, 255),
     TextSecondary = Color3.fromRGB(150, 180, 200),
     Border = Color3.fromRGB(30, 50, 80),
-    Font = Enum.Font.GothamMedium
+    Font = Enum.Font.GothamMedium,
+    Transparency = 0.15 -- Transparência solicitada
 }
 
 -- Utilitários
@@ -66,21 +67,83 @@ local function MakeDraggable(topbar, object)
     end)
 end
 
-function Abyss:CreateWindow(title, subtitle)
+function Abyss:CreateWindow(title, subtitle, keySettings)
     local ScreenGui = Create("ScreenGui", {
         Name = "AbyssUI",
         Parent = CoreGui,
         ResetOnSpawn = false
     })
 
+    -- Sistema de Key
+    if keySettings and keySettings.Enabled then
+        local KeyFrame = Create("Frame", {
+            Name = "KeySystem",
+            Parent = ScreenGui,
+            BackgroundColor3 = Theme.MainBackground,
+            BackgroundTransparency = Theme.Transparency,
+            Position = UDim2.new(0.5, -150, 0.5, -100),
+            Size = UDim2.new(0, 300, 0, 200)
+        })
+        Create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = KeyFrame})
+        Create("UIStroke", {Color = Theme.Border, Thickness = 1, Parent = KeyFrame})
+
+        local KeyTitle = Create("TextLabel", {
+            Parent = KeyFrame,
+            BackgroundTransparency = 1,
+            Position = UDim2.new(0, 0, 0, 20),
+            Size = UDim2.new(1, 0, 0, 30),
+            Font = Theme.Font,
+            Text = "KEY SYSTEM",
+            TextColor3 = Theme.Accent,
+            TextSize = 18
+        })
+
+        local KeyInput = Create("TextBox", {
+            Parent = KeyFrame,
+            BackgroundColor3 = Theme.SidebarBackground,
+            Position = UDim2.new(0.1, 0, 0.4, 0),
+            Size = UDim2.new(0.8, 0, 0, 35),
+            Font = Theme.Font,
+            PlaceholderText = "Enter Key...",
+            Text = "",
+            TextColor3 = Theme.TextPrimary,
+            TextSize = 14
+        })
+        Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = KeyInput})
+
+        local VerifyBtn = Create("TextButton", {
+            Parent = KeyFrame,
+            BackgroundColor3 = Theme.Accent,
+            Position = UDim2.new(0.1, 0, 0.65, 0),
+            Size = UDim2.new(0.8, 0, 0, 35),
+            Font = Theme.Font,
+            Text = "Verify Key",
+            TextColor3 = Theme.TextPrimary,
+            TextSize = 14
+        })
+        Create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = VerifyBtn})
+
+        -- Lógica de Skip/Verificação (Simulada para o exemplo)
+        VerifyBtn.MouseButton1Click:Connect(function()
+            if KeyInput.Text == keySettings.Key then
+                KeyFrame:Destroy()
+                MainFrame.Visible = true
+            end
+        end)
+        
+        -- Se já tiver key ativa (exemplo), pularia aqui
+    end
+
     local MainFrame = Create("Frame", {
         Name = "MainFrame",
         Parent = ScreenGui,
         BackgroundColor3 = Theme.MainBackground,
+        BackgroundTransparency = Theme.Transparency,
         BorderSizePixel = 0,
         Position = UDim2.new(0.5, -300, 0.5, -200),
         Size = UDim2.new(0, 600, 0, 400),
-        ClipsDescendants = true
+        ClipsDescendants = true,
+        Visible = not (keySettings and keySettings.Enabled)
     })
 
     Create("UIGradient", {
@@ -124,8 +187,60 @@ function Abyss:CreateWindow(title, subtitle)
         Name = "TitleArea",
         Parent = Sidebar,
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 0, 60)
+        Size = UDim2.new(1, 0, 0, 120) -- Aumentado para caber o perfil
     })
+
+    -- Perfil do Usuário
+    local Player = game.Players.LocalPlayer
+    local ProfileFrame = Create("Frame", {
+        Name = "Profile",
+        Parent = TitleArea,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 15, 0, 60),
+        Size = UDim2.new(1, -30, 0, 40)
+    })
+
+    local AvatarCircle = Create("ImageLabel", {
+        Name = "Avatar",
+        Parent = ProfileFrame,
+        BackgroundColor3 = Color3.fromRGB(255, 0, 0), -- Círculo Vermelho solicitado
+        Size = UDim2.new(0, 35, 0, 35),
+        Image = game.Players:GetUserIdFromNameAsync(Player.Name) and "rbxthumb://type=AvatarHeadShot&id=" .. Player.UserId .. "&w=150&h=150" or "",
+    })
+    Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = AvatarCircle})
+
+    local StatusBox = Create("Frame", {
+        Name = "StatusBox",
+        Parent = ProfileFrame,
+        BackgroundColor3 = Theme.SectionBackground,
+        Position = UDim2.new(0, 45, 0, 5),
+        Size = UDim2.new(0, 80, 0, 25)
+    })
+    Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = StatusBox})
+
+    local StatusLabel = Create("TextLabel", {
+        Parent = StatusBox,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 1, 0),
+        Font = Theme.Font,
+        Text = Player.MembershipType == Enum.MembershipType.Premium and "PREMIUM" or "FREE",
+        TextColor3 = Player.MembershipType == Enum.MembershipType.Premium and Color3.fromRGB(255, 215, 0) or Theme.TextSecondary,
+        TextSize = 10
+    })
+
+    if Player.MembershipType ~= Enum.MembershipType.Premium then
+        local TimeLabel = Create("TextLabel", {
+            Parent = ProfileFrame,
+            BackgroundTransparency = 1,
+            Position = UDim2.new(0, 45, 0, 30),
+            Size = UDim2.new(0, 80, 0, 10),
+            Font = Theme.Font,
+            Text = "Key: 23h 59m",
+            TextColor3 = Theme.TextSecondary,
+            TextSize = 8,
+            TextXAlignment = Enum.TextXAlignment.Left
+        })
+    end
 
     local TitleLabel = Create("TextLabel", {
         Name = "Title",
@@ -395,6 +510,7 @@ function Abyss:CreateWindow(title, subtitle)
                 local Button = Create("TextButton", {
                     Parent = SectionContent,
                     BackgroundColor3 = Theme.MainBackground,
+                    BackgroundTransparency = Theme.Transparency,
                     BorderSizePixel = 0,
                     Size = UDim2.new(1, 0, 0, 32),
                     AutoButtonColor = false,
@@ -440,6 +556,7 @@ function Abyss:CreateWindow(title, subtitle)
                 local Outer = Create("Frame", {
                     Parent = ToggleFrame,
                     BackgroundColor3 = Theme.MainBackground,
+                    BackgroundTransparency = Theme.Transparency,
                     Position = UDim2.new(1, -35, 0.5, -10),
                     Size = UDim2.new(0, 35, 0, 20)
                 })
@@ -507,6 +624,7 @@ function Abyss:CreateWindow(title, subtitle)
                 local SliderBar = Create("Frame", {
                     Parent = SliderFrame,
                     BackgroundColor3 = Theme.MainBackground,
+                    BackgroundTransparency = Theme.Transparency,
                     Position = UDim2.new(0, 0, 0, 25),
                     Size = UDim2.new(1, 0, 0, 6)
                 })
@@ -761,6 +879,106 @@ function Abyss:CreateWindow(title, subtitle)
                     TextXAlignment = Enum.TextXAlignment.Left
                 })
                 return Label
+            end
+
+            function Section:CreateColorPicker(text, defaultColor, callback)
+                local CurrentColor = defaultColor or Color3.fromRGB(255, 255, 255)
+                local Expanded = false
+
+                local ColorPickerFrame = Create("Frame", {
+                    Parent = SectionContent,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 32),
+                    ClipsDescendants = true
+                })
+
+                local Main = Create("TextButton", {
+                    Parent = ColorPickerFrame,
+                    BackgroundColor3 = Theme.MainBackground,
+                    BackgroundTransparency = Theme.Transparency,
+                    Size = UDim2.new(1, 0, 0, 32),
+                    AutoButtonColor = false,
+                    Text = ""
+                })
+
+                Create("UICorner", {
+                    CornerRadius = UDim.new(0, 4),
+                    Parent = Main
+                })
+
+                local Label = Create("TextLabel", {
+                    Parent = Main,
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 10, 0, 0),
+                    Size = UDim2.new(1, -40, 1, 0),
+                    Font = Theme.Font,
+                    Text = text,
+                    TextColor3 = Theme.TextSecondary,
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Left
+                })
+
+                local ColorPreview = Create("Frame", {
+                    Parent = Main,
+                    BackgroundColor3 = CurrentColor,
+                    Position = UDim2.new(1, -30, 0.5, -8),
+                    Size = UDim2.new(0, 16, 0, 16)
+                })
+                Create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = ColorPreview})
+
+                local PickerContainer = Create("Frame", {
+                    Parent = ColorPickerFrame,
+                    BackgroundColor3 = Theme.SectionBackground,
+                    BackgroundTransparency = Theme.Transparency,
+                    Position = UDim2.new(0, 0, 0, 35),
+                    Size = UDim2.new(1, 0, 0, 100),
+                    Visible = false
+                })
+                Create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = PickerContainer})
+
+                local ColorWheel = Create("ImageLabel", {
+                    Parent = PickerContainer,
+                    BackgroundTransparency = 1,
+                    Image = "rbxassetid://1042142839", -- Exemplo de Color Wheel ID
+                    Size = UDim2.new(1, 0, 1, 0)
+                })
+
+                local function UpdateColor(input)
+                    local x = math.clamp(input.Position.X - ColorWheel.AbsolutePosition.X, 0, ColorWheel.AbsoluteSize.X)
+                    local y = math.clamp(input.Position.Y - ColorWheel.AbsolutePosition.Y, 0, ColorWheel.AbsoluteSize.Y)
+
+                    local pixel = ColorWheel:GetPixel(x, y)
+                    CurrentColor = pixel
+                    ColorPreview.BackgroundColor3 = CurrentColor
+                    callback(CurrentColor)
+                end
+
+                local picking = false
+                ColorWheel.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        picking = true
+                        UpdateColor(input)
+                    end
+                end)
+
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        picking = false
+                    end
+                end)
+
+                UserInputService.InputChanged:Connect(function(input)
+                    if picking and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        UpdateColor(input)
+                    end
+                end)
+
+                Main.MouseButton1Click:Connect(function()
+                    Expanded = not Expanded
+                    PickerContainer.Visible = Expanded
+                    local targetSize = Expanded and UDim2.new(1, 0, 0, 35 + PickerContainer.Size.Y.Offset) or UDim2.new(1, 0, 0, 32)
+                    TweenService:Create(ColorPickerFrame, TweenInfo.new(0.2), {Size = targetSize}):Play()
+                end)
             end
 
             return Section
